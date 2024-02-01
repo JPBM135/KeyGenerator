@@ -53,15 +53,15 @@ pub async fn get_key(Query(query): Query<GetKeyQuery>) -> impl IntoResponse {
 
   let mut rng = create_rng_thread(query.seed);
 
-  let bits: usize = match query.bits {
-    Some(4096) => 4096,
-    Some(2048) => 2048,
-    Some(1024) => 1024,
-    Some(_) => 0,
-    None => 2048,
+  let bits: Option<usize> = match query.bits {
+    Some(4096) => Some(4096),
+    Some(2048) => Some(2048),
+    Some(1024) => Some(1024),
+    Some(_) => None,
+    None => Some(2048),
   };
 
-  if bits == 0 {
+  if bits.is_none() {
     let error = Error {
       code: "invalid_bits".to_string(),
       message: "Bits must be 1024, 2048, or 4096".to_string(),
@@ -70,7 +70,19 @@ pub async fn get_key(Query(query): Query<GetKeyQuery>) -> impl IntoResponse {
     return create_response::<()>(None, Some(error));
   }
 
-  let priv_key = RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key");
+  let priv_key = RsaPrivateKey::new(&mut rng, bits.expect("Invalid bits"));
+
+  if priv_key.is_err() {
+    let error = Error {
+      code: "key_generation_failed".to_string(),
+      message: "Failed to generate key".to_string(),
+    };
+
+    return create_response::<()>(None, Some(error));
+  }
+
+  let priv_key = priv_key.unwrap();
+
   let pub_key = RsaPublicKey::from(&priv_key);
 
   let response = GetKeyResponse {
