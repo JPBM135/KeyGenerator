@@ -1,6 +1,6 @@
 use crate::utils::response::{create_response, Error};
 use axum::{extract::Query, response::IntoResponse};
-use rand::{prelude::ThreadRng, rngs::StdRng, thread_rng, CryptoRng, Rng, RngCore, SeedableRng};
+use rand::{rngs::StdRng, thread_rng, CryptoRng, RngCore, SeedableRng};
 use rsa::{
   pkcs1::EncodeRsaPrivateKey, pkcs1::EncodeRsaPublicKey, pkcs1::LineEnding, RsaPrivateKey,
   RsaPublicKey,
